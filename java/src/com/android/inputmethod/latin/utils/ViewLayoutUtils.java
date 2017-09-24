@@ -46,13 +46,17 @@ public final class ViewLayoutUtils {
 
     public static void placeViewAt(final View view, final int x, final int y, final int w,
             final int h) {
+
         final ViewGroup.LayoutParams lp = view.getLayoutParams();
         if (lp instanceof MarginLayoutParams) {
             final MarginLayoutParams marginLayoutParams = (MarginLayoutParams)lp;
             marginLayoutParams.width = w;
             marginLayoutParams.height = h;
-            marginLayoutParams.setMargins(x, y, 0, 0);
+//            marginLayoutParams.setMargins(x, y, 0, 0);
         }
+
+        view.setTranslationX(x);
+        view.setTranslationY(y);
     }
 
     public static void updateLayoutHeightOf(final Window window, final int layoutHeight) {

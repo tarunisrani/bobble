@@ -31,16 +31,16 @@ import com.android.inputmethod.keyboard.internal.GestureStrokeDrawingPoints;
 import com.android.inputmethod.keyboard.internal.GestureStrokeRecognitionParams;
 import com.android.inputmethod.keyboard.internal.PointerTrackerQueue;
 import com.android.inputmethod.keyboard.internal.TypingTimeRecorder;
-
-import java.util.ArrayList;
+import com.android.inputmethod.latin.utils.CoordinateUtils;
+import com.android.inputmethod.latin.utils.ResourceUtils;
 
 import org.smc.inputmethod.indic.Constants;
 import org.smc.inputmethod.indic.InputPointers;
 import org.smc.inputmethod.indic.R;
 import org.smc.inputmethod.indic.define.DebugFlags;
 import org.smc.inputmethod.indic.settings.Settings;
-import com.android.inputmethod.latin.utils.CoordinateUtils;
-import com.android.inputmethod.latin.utils.ResourceUtils;
+
+import java.util.ArrayList;
 
 public final class PointerTracker implements PointerTrackerQueue.Element,
         BatchInputArbiterListener {

@@ -22,13 +22,13 @@ import android.graphics.Paint;
 import android.graphics.PorterDuff;
 import android.graphics.PorterDuffXfermode;
 import android.util.AttributeSet;
-import android.widget.RelativeLayout;
-
-import java.util.ArrayList;
+import android.widget.FrameLayout;
 
 import com.android.inputmethod.latin.utils.CoordinateUtils;
 
-public final class DrawingPreviewPlacerView extends RelativeLayout {
+import java.util.ArrayList;
+
+public final class DrawingPreviewPlacerView extends FrameLayout {
     private final int[] mKeyboardViewOrigin = CoordinateUtils.newInstance();
 
     private final ArrayList<AbstractDrawingPreview> mPreviews = new ArrayList<>();

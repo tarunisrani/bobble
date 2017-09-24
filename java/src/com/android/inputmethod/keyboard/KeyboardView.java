@@ -31,16 +31,18 @@ import android.graphics.drawable.Drawable;
 import android.graphics.drawable.NinePatchDrawable;
 import android.text.TextUtils;
 import android.util.AttributeSet;
-import android.view.View;
+import android.widget.FrameLayout;
+import android.widget.TextView;
 
 import com.android.inputmethod.keyboard.internal.KeyDrawParams;
 import com.android.inputmethod.keyboard.internal.KeyVisualAttributes;
-
-import java.util.HashSet;
+import com.android.inputmethod.latin.utils.CoordinateUtils;
+import com.android.inputmethod.latin.utils.TypefaceUtils;
 
 import org.smc.inputmethod.indic.Constants;
 import org.smc.inputmethod.indic.R;
-import com.android.inputmethod.latin.utils.TypefaceUtils;
+
+import java.util.HashSet;
 
 /**
  * A view that renders a virtual {@link Keyboard}.
@@ -76,7 +78,7 @@ import com.android.inputmethod.latin.utils.TypefaceUtils;
  * @attr ref R.styleable#Keyboard_Key_keyShiftedLetterHintActivatedColor
  * @attr ref R.styleable#Keyboard_Key_keyPreviewTextColor
  */
-public class KeyboardView extends View {
+public class KeyboardView extends FrameLayout {
     // XML attributes
     private final KeyVisualAttributes mKeyVisualAttributes;
     // Default keyLabelFlags from {@link KeyboardTheme}.
@@ -303,13 +305,13 @@ public class KeyboardView extends View {
         if (drawAllKeys || isHardwareAccelerated) {
             // Draw all keys.
             for (final Key key : mKeyboard.getSortedKeys()) {
-                onDrawKey(key, canvas, paint);
+//                onDrawKey(key, canvas, paint);
             }
         } else {
             // Draw invalidated keys.
             for (final Key key : mInvalidatedKeys) {
                 if (mKeyboard.hasKey(key)) {
-                    onDrawKey(key, canvas, paint);
+//                    onDrawKey(key, canvas, paint);
                 }
             }
         }
@@ -548,6 +550,9 @@ public class KeyboardView extends View {
     public void invalidateAllKeys() {
         mInvalidatedKeys.clear();
         mInvalidateAllKeys = true;
+
+        addKeyViews();
+
         invalidate();
     }
 
@@ -565,6 +570,7 @@ public class KeyboardView extends View {
         final int x = key.getX() + getPaddingLeft();
         final int y = key.getY() + getPaddingTop();
         invalidate(x, y, x + key.getWidth(), y + key.getHeight());
+//        invalidate(x, y, x, y);
     }
 
     @Override
@@ -576,4 +582,84 @@ public class KeyboardView extends View {
     public void deallocateMemory() {
         freeOffscreenBuffer();
     }
+
+    /*
+    * Added by Tarun
+    * */
+    private void addKeyViews(){
+        for (final Key key : mKeyboard.getSortedKeys()) {
+            TextView keyTextView = new TextView(getContext());
+//            MarginLayoutParams marginLayoutParams = (MarginLayoutParams)keyTextView.getLayoutParams();
+            MarginLayoutParams marginLayoutParams = new MarginLayoutParams(150, 150);
+            FrameLayout.LayoutParams fllp = new FrameLayout.LayoutParams(200, 200);
+//            marginLayoutParams.width = 50;
+//            marginLayoutParams.height = 50;
+            marginLayoutParams.leftMargin = 100;
+            marginLayoutParams.topMargin = 100;
+            keyTextView.setTranslationX(100.0f);
+            keyTextView.setTranslationY(100.0f);
+//            keyTextView.setLayoutParams(marginLayoutParams);
+            keyTextView.setBackgroundColor(Color.BLUE);
+            keyTextView.setText(key.getLabel());
+            keyTextView.setTextColor(Color.GREEN);
+            addView(keyTextView, fllp);
+        }
+    }
+
+
+    private final int[] mOriginCoords = CoordinateUtils.newInstance();
+
+    /*
+    * Added By Tarun
+    * */
+    /*public void placeKeys(){
+
+        getLocationInWindow(mOriginCoords);
+
+        for(Key key : getKeyboard().getSortedKeys()){
+            KeyPreviewView keyPreviewView = mKeyPreviewChoreographer.getKeyPreviewView(key, this);
+            placeKeyPreview(key, keyPreviewView, getKeyboard().mIconsSet, mKeyDrawParams,
+                    getWidth(), mOriginCoords);
+        }
+    }
+
+    private void placeKeyPreview(final Key key, final KeyPreviewView keyPreviewView,
+                                 final KeyboardIconsSet iconsSet, final KeyDrawParams drawParams,
+                                 final int keyboardViewWidth, final int[] originCoords) {
+        keyPreviewView.setPreviewVisual(key, iconsSet, drawParams);
+        keyPreviewView.measure(
+                ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.WRAP_CONTENT);
+        mKeyPreviewDrawParams.setGeometry(keyPreviewView);
+        final int previewWidth = keyPreviewView.getMeasuredWidth();
+        final int previewHeight = mKeyPreviewDrawParams.mPreviewHeight;
+        final int keyDrawWidth = key.getDrawWidth();
+        // The key preview is horizontally aligned with the center of the visible part of the
+        // parent key. If it doesn't fit in this {@link KeyboardView}, it is moved inward to fit and
+        // the left/right background is used if such background is specified.
+        final int keyPreviewPosition;
+        int previewX = key.getDrawX() - (previewWidth - keyDrawWidth) / 2
+                + CoordinateUtils.x(originCoords);
+        if (previewX < 0) {
+            previewX = 0;
+            keyPreviewPosition = KeyPreviewView.POSITION_LEFT;
+        } else if (previewX > keyboardViewWidth - previewWidth) {
+            previewX = keyboardViewWidth - previewWidth;
+            keyPreviewPosition = KeyPreviewView.POSITION_RIGHT;
+        } else {
+            keyPreviewPosition = KeyPreviewView.POSITION_MIDDLE;
+        }
+        final boolean hasMoreKeys = (key.getMoreKeys() != null);
+        keyPreviewView.setPreviewBackground(hasMoreKeys, keyPreviewPosition);
+        // The key preview is placed vertically above the top edge of the parent key with an
+        // arbitrary offset.
+        final int previewY = key.getY() - previewHeight + mKeyPreviewDrawParams.mPreviewOffset
+                + CoordinateUtils.y(originCoords);
+
+        ViewLayoutUtils.placeViewAt(
+                keyPreviewView, previewX, previewY, previewWidth, previewHeight);
+        keyPreviewView.setPivotX(previewWidth / 2.0f);
+        keyPreviewView.setPivotY(previewHeight);
+    }*/
+
+
 }

@@ -5,7 +5,7 @@ buildscript {
         mavenCentral()
     }
     dependencies {
-        classpath 'com.android.tools.build:gradle:1.5.0+'
+        classpath 'com.android.tools.build:gradle:2.3.0'
     }
 }
 apply plugin: 'com.android.application'
@@ -23,7 +23,7 @@ dependencies {
 
 android {
     compileSdkVersion 22
-    buildToolsVersion "22.0.1"
+    buildToolsVersion '26.0.1'
 
     defaultConfig {
         minSdkVersion 16
@@ -45,19 +45,19 @@ android {
 
         instrumentTest.setRoot('tests')
     }
-    signingConfigs {
+    /*signingConfigs {
         release {
             storeFile file(System.console().readLine("\n\$ Enter keystore path: "))
             storePassword System.console().readLine("\n\$ Enter keystore password: ")
             keyAlias System.console().readLine("\n\$ Enter key alias: ")
             keyPassword System.console().readLine("\n\$ Enter key password: ")
         }
-    }
+    }*/
     buildTypes {
         release {
-            /*minifyEnabled true*/
-            /*proguardFile getDefaultProguardFile('proguard-android.txt')*/
-            signingConfig signingConfigs.release
+            minifyEnabled true
+            proguardFile getDefaultProguardFile('proguard-android.txt')
+//            signingConfig signingConfigs.release
         }
     }
     lintOptions {

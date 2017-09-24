@@ -23,13 +23,12 @@ import android.view.View;
 import android.view.ViewGroup;
 
 import com.android.inputmethod.keyboard.Key;
+import com.android.inputmethod.latin.utils.CoordinateUtils;
+import com.android.inputmethod.latin.utils.ViewLayoutUtils;
 
 import java.util.ArrayDeque;
 import java.util.HashMap;
 import java.util.HashSet;
-
-import com.android.inputmethod.latin.utils.CoordinateUtils;
-import com.android.inputmethod.latin.utils.ViewLayoutUtils;
 
 /**
  * This class controls pop up key previews. This class decides:
@@ -214,4 +213,34 @@ public final class KeyPreviewChoreographer {
             mDismissAnimator.start();
         }
     }
+
+    /*
+    * Added by Tarun
+    * */
+
+    public void placeAndShowKeyLayout(final Key key, final KeyboardIconsSet iconsSet,
+                                       final KeyDrawParams drawParams, final int keyboardViewWidth, final int[] keyboardOrigin,
+                                       final ViewGroup placerView, final boolean withAnimation) {
+        final KeyPreviewView keyPreviewView = getKeyPreviewView(key, placerView);
+        placeKeyPreview(
+                key, keyPreviewView, iconsSet, drawParams, keyboardViewWidth, keyboardOrigin);
+        showKeyPreview(key, keyPreviewView, withAnimation);
+    }
+
+    public KeyPreviewView getKeyPreviewLayout(final Key key, final ViewGroup placerView) {
+        KeyPreviewView keyPreviewView = mShowingKeyPreviewViews.remove(key);
+        if (keyPreviewView != null) {
+            return keyPreviewView;
+        }
+        keyPreviewView = mFreeKeyPreviewViews.poll();
+        if (keyPreviewView != null) {
+            return keyPreviewView;
+        }
+        final Context context = placerView.getContext();
+        keyPreviewView = new KeyPreviewView(context, null /* attrs */);
+        keyPreviewView.setBackgroundResource(mParams.mPreviewBackgroundResId);
+        placerView.addView(keyPreviewView, ViewLayoutUtils.newLayoutParam(placerView, 0, 0));
+        return keyPreviewView;
+    }
+
 }

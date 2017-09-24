@@ -30,11 +30,14 @@ import android.graphics.Typeface;
 import android.preference.PreferenceManager;
 import android.util.AttributeSet;
 import android.util.Log;
+import android.view.Gravity;
 import android.view.LayoutInflater;
 import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewGroup;
 import android.view.inputmethod.InputMethodSubtype;
+import android.widget.FrameLayout;
+import android.widget.TextView;
 
 import com.android.inputmethod.keyboard.internal.DrawingHandler;
 import com.android.inputmethod.keyboard.internal.DrawingPreviewPlacerView;
@@ -44,13 +47,16 @@ import com.android.inputmethod.keyboard.internal.KeyDrawParams;
 import com.android.inputmethod.keyboard.internal.KeyPreviewChoreographer;
 import com.android.inputmethod.keyboard.internal.KeyPreviewDrawParams;
 import com.android.inputmethod.keyboard.internal.KeyPreviewView;
+import com.android.inputmethod.keyboard.internal.KeyboardIconsSet;
 import com.android.inputmethod.keyboard.internal.LanguageOnSpacebarHelper;
 import com.android.inputmethod.keyboard.internal.MoreKeySpec;
 import com.android.inputmethod.keyboard.internal.NonDistinctMultitouchHelper;
 import com.android.inputmethod.keyboard.internal.SlidingKeyInputDrawingPreview;
 import com.android.inputmethod.keyboard.internal.TimerHandler;
-
-import java.util.WeakHashMap;
+import com.android.inputmethod.latin.utils.CoordinateUtils;
+import com.android.inputmethod.latin.utils.SpacebarLanguageUtils;
+import com.android.inputmethod.latin.utils.TypefaceUtils;
+import com.android.inputmethod.latin.utils.ViewLayoutUtils;
 
 import org.smc.inputmethod.accessibility.AccessibilityUtils;
 import org.smc.inputmethod.accessibility.MainKeyboardAccessibilityDelegate;
@@ -59,9 +65,9 @@ import org.smc.inputmethod.indic.Constants;
 import org.smc.inputmethod.indic.R;
 import org.smc.inputmethod.indic.SuggestedWords;
 import org.smc.inputmethod.indic.settings.DebugSettings;
-import com.android.inputmethod.latin.utils.CoordinateUtils;
-import com.android.inputmethod.latin.utils.SpacebarLanguageUtils;
-import com.android.inputmethod.latin.utils.TypefaceUtils;
+
+import java.util.HashMap;
+import java.util.WeakHashMap;
 
 /**
  * A view that is responsible for detecting key presses and touch movements.
@@ -270,6 +276,9 @@ public final class MainKeyboardView extends KeyboardView implements PointerTrack
 
         mLanguageOnSpacebarHorizontalMargin = (int)getResources().getDimension(
                 R.dimen.config_language_on_spacebar_horizontal_margin);
+
+//        placeKeys();
+
     }
 
     @Override
@@ -380,6 +389,9 @@ public final class MainKeyboardView extends KeyboardView implements PointerTrack
     public void setKeyboard(final Keyboard keyboard) {
         // Remove any pending messages, except dismissing preview and key repeat.
         mKeyTimerHandler.cancelLongPressTimers();
+
+        placeKeys(keyboard);
+
         super.setKeyboard(keyboard);
         mKeyDetector.setKeyboard(
                 keyboard, -getPaddingLeft(), -getPaddingTop() + getVerticalCorrection());
@@ -433,6 +445,9 @@ public final class MainKeyboardView extends KeyboardView implements PointerTrack
 
     private void locatePreviewPlacerView() {
         getLocationInWindow(mOriginCoords);
+        Log.e("KEYBOARD", mOriginCoords[0]+" "+mOriginCoords[1]);
+//        mOriginCoords[0] = 10;
+//        mOriginCoords[1] = 10;
         mDrawingPreviewPlacerView.setKeyboardViewGeometry(mOriginCoords, getWidth(), getHeight());
     }
 
@@ -478,6 +493,10 @@ public final class MainKeyboardView extends KeyboardView implements PointerTrack
         getLocationInWindow(mOriginCoords);
         mKeyPreviewChoreographer.placeAndShowKeyPreview(key, keyboard.mIconsSet, mKeyDrawParams,
                 getWidth(), mOriginCoords, mDrawingPreviewPlacerView, isHardwareAccelerated());
+
+
+//        showKeyPreview(key, mShowingKeyPreviewViews.get(key), false);
+
     }
 
     // Implements {@link TimerHandler.Callbacks} method.
@@ -496,6 +515,7 @@ public final class MainKeyboardView extends KeyboardView implements PointerTrack
             return;
         }
         mKeyPreviewChoreographer.dismissKeyPreview(key, true /* withAnimation */);
+//        dismissKeyPreview(key, false /* withAnimation */);
     }
 
     public void setSlidingKeyInputPreviewEnabled(final boolean enabled) {
@@ -923,4 +943,318 @@ public final class MainKeyboardView extends KeyboardView implements PointerTrack
         super.deallocateMemory();
         mDrawingPreviewPlacerView.deallocateMemory();
     }
+
+
+    /*
+    * Added By Tarun
+    * */
+
+
+    private final HashMap<Key,FrameLayout> mShowingKeyPreviewViews = new HashMap<>();
+//    private final ArrayDeque<FrameLayout> mFreeKeyPreviewViews = new ArrayDeque<>();
+
+
+    public void placeKeys(Keyboard keyboard){
+
+//        getLocationInWindow(mOriginCoords);
+
+        for(Key key : keyboard.getSortedKeys()){
+//            Log.i("KEYS", key.getLabel());
+
+            if (keyboard.hasKey(key)) {
+                final int x = key.getX() + getPaddingLeft();
+                final int y = key.getY() + getPaddingTop();
+//                mWorkingRect.set(x, y, x + key.getWidth(), y + key.getHeight());
+
+                Log.i("COORDINATES", "X: "+x+"  Y: "+y+" Width: "+key.getWidth()+" Height: "+key.getHeight());
+            }
+
+
+
+//            KeyPreviewView keyPreviewView = getKeyPreviewView(getContext(), this);
+//            TextView keyTextView = getKeyPreviewView(getContext(), this, key);
+            TextView keyTextView = new TextView(getContext());
+
+
+
+
+            final int iconId = key.getIconId();
+            if (iconId != KeyboardIconsSet.ICON_UNDEFINED) {
+                keyTextView.setCompoundDrawables(null, null, null, key.getPreviewIcon(keyboard.mIconsSet));
+                keyTextView.setText(null);
+            }else{
+                keyTextView.setText(key.getLabel());
+            }
+
+
+
+//            keyTextView.setBackgroundColor(Color.GREEN);
+            keyTextView.setGravity(Gravity.CENTER);
+
+
+            keyTextView.setTypeface(key.selectTypeface(mKeyDrawParams));
+            keyTextView.setTextSize(key.selectTextSize(mKeyDrawParams)/2);
+//            keyTextView.setTextColor(key.selectTextColor(mKeyDrawParams));
+            keyTextView.setTextColor(Color.WHITE);
+
+            FrameLayout keyTextLayout = getKeyLayout(getContext(), this, key, keyTextView);
+//            keyTextLayout.setBackgroundColor(Color.CYAN);
+
+            placeKeyPreview(key, keyTextLayout, keyboard.mIconsSet, mKeyDrawParams,
+                    getWidth(), mOriginCoords);
+
+        }
+    }
+
+    private TextView getKeyPreviewView(Context context, ViewGroup placerView, Key key){
+        KeyPreviewView keyPreviewView = new KeyPreviewView(context, null /* attrs */);
+
+        TextView keyTextView = new TextView(context, null);
+
+//        ketTextView.setBackgroundResource(mKeyPreviewDrawParams.mPreviewBackgroundResId);
+        MarginLayoutParams marginLayoutParams = ViewLayoutUtils.newLayoutParam(placerView, key.getDrawWidth(), key.getHeight());
+
+        placerView.addView(keyTextView, marginLayoutParams);
+
+        return keyTextView;
+
+    }
+
+    private FrameLayout getKeyLayout(Context context, ViewGroup placerView, Key key, TextView keyTextView){
+
+        FrameLayout parent = mShowingKeyPreviewViews.get(key);
+        if (parent != null) {
+            return parent;
+        }
+
+        parent = new FrameLayout(context, null);
+
+//        TextView keyTextView = new TextView(context, null);
+
+        FrameLayout container = new FrameLayout(context, null);
+
+
+        placerView.addView(parent, ViewLayoutUtils.newLayoutParam(placerView, 0, 0));
+
+        parent.addView(container, ViewLayoutUtils.newLayoutParam(parent, 0,0));
+//        MarginLayoutParams parentLayoutparams = (MarginLayoutParams)parent.getLayoutParams();
+//        parentLayoutparams.width = 100;
+//        parentLayoutparams.height = 100;
+//        parentLayoutparams.setMargins(10, 10, 10, 10);
+
+
+
+
+//        ketTextView.setBackgroundResource(mKeyPreviewDrawParams.mPreviewBackgroundResId);
+//        MarginLayoutParams marginLayoutParams = ViewLayoutUtils.newLayoutParam(container, key.getDrawWidth(), key.getHeight());
+
+
+
+        container.addView(keyTextView, ViewLayoutUtils.newLayoutParam(container, key.getDrawWidth(), key.getHeight()));
+//        MarginLayoutParams mlp = (MarginLayoutParams)keyTextView.getLayoutParams();
+//        mlp.width = 50;
+//        mlp.height = 50;
+//        mlp.setMargins(10, 10, 10, 10);
+
+//        FrameLayout.LayoutParams fllp = (FrameLayout.LayoutParams)keyTextView.getLayoutParams();
+//        fllp.gravity = Gravity.CENTER;
+//        fllp.bottomMargin = 10;
+
+//        container.setBackgroundResource(mKeyPreviewDrawParams.mPreviewBackgroundResId);
+
+        mShowingKeyPreviewViews.put(key, parent);
+
+        return parent;
+
+    }
+
+    private void placeKeyPreview(final Key key, final View keyPreviewView,
+                                 final KeyboardIconsSet iconsSet, final KeyDrawParams drawParams,
+                                 final int keyboardViewWidth, final int[] originCoords) {
+//        keyPreviewView.setPreviewVisual(key, iconsSet, drawParams);
+        keyPreviewView.measure(
+                ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.WRAP_CONTENT);
+//        mKeyPreviewDrawParams.setGeometry(keyPreviewView);
+        final int previewWidth = keyPreviewView.getMeasuredWidth();
+        final int previewHeight = mKeyPreviewDrawParams.mPreviewHeight;
+        final int keyDrawWidth = key.getDrawWidth();
+        // The key preview is horizontally aligned with the center of the visible part of the
+        // parent key. If it doesn't fit in this {@link KeyboardView}, it is moved inward to fit and
+        // the left/right background is used if such background is specified.
+        final int keyPreviewPosition;
+        int previewX = key.getDrawX() - (previewWidth - keyDrawWidth) / 2
+                + CoordinateUtils.x(originCoords);
+        if (previewX < 0) {
+            previewX = 0;
+            keyPreviewPosition = KeyPreviewView.POSITION_LEFT;
+        } else if (previewX > keyboardViewWidth - previewWidth) {
+            previewX = keyboardViewWidth - previewWidth;
+            keyPreviewPosition = KeyPreviewView.POSITION_RIGHT;
+        } else {
+            keyPreviewPosition = KeyPreviewView.POSITION_MIDDLE;
+        }
+        final boolean hasMoreKeys = (key.getMoreKeys() != null);
+//        keyPreviewView.setPreviewBackground(hasMoreKeys, keyPreviewPosition);
+        // The key preview is placed vertically above the top edge of the parent key with an
+        // arbitrary offset.
+        final int previewY = key.getY() - previewHeight + mKeyPreviewDrawParams.mPreviewOffset
+                + CoordinateUtils.y(originCoords);
+
+
+//        ViewLayoutUtils.placeViewAt(keyPreviewView, previewX, previewY, previewWidth, previewHeight);
+//        keyPreviewView.setPivotX(previewWidth / 2.0f);
+//        keyPreviewView.setPivotY(previewHeight);
+
+        ViewLayoutUtils.placeViewAt(keyPreviewView, key.getX(), key.getY(), previewWidth, previewHeight);
+        keyPreviewView.setPivotX(key.getDrawWidth() / 4.0f);
+        keyPreviewView.setPivotY(key.getHeight());
+    }
+
+    /*private void slideUp(FrameLayout frameLayout){
+        if(frameLayout == null){
+            return;
+        }
+
+        FrameLayout container = (FrameLayout)frameLayout.getChildAt(0);
+
+        if(container == null){
+            return;
+        }
+
+        TextView view = (TextView) container.getChildAt(0);
+        view.setBackgroundColor(Color.BLUE);
+        FrameLayout.LayoutParams fllp = (FrameLayout.LayoutParams)container.getLayoutParams();
+        fllp.bottomMargin = 50;
+        fllp.height += 50;
+//        view.setTranslationY(-100.0f);
+        container.invalidate();
+        container.requestLayout();
+
+
+
+//        container.addView(keyTextView, ViewLayoutUtils.newLayoutParam(container, key.getDrawWidth(), key.getHeight()));
+//        MarginLayoutParams mlp = (MarginLayoutParams)keyTextView.getLayoutParams();
+//        mlp.width = 50;
+//        mlp.height = 50;
+//        mlp.setMargins(10, 10, 10, 10);
+
+    }
+
+    private void slideDown(FrameLayout frameLayout){
+        if(frameLayout == null){
+            return;
+        }
+
+        FrameLayout container = (FrameLayout)frameLayout.getChildAt(0);
+
+        if(container == null){
+            return;
+        }
+
+        TextView view = (TextView) container.getChildAt(0);
+        view.setBackgroundColor(Color.CYAN);
+        FrameLayout.LayoutParams fllp = (FrameLayout.LayoutParams)container.getLayoutParams();
+//        fllp.gravity = Gravity.CENTER;
+        fllp.bottomMargin = 0;
+        fllp.height -= 50;
+//        view.setTranslationY(0.0f);
+        container.invalidate();
+        container.requestLayout();
+    }
+
+    private void showKeyPreview(final Key key, final FrameLayout keyPreviewView,
+                                final boolean withAnimation) {
+        if (!withAnimation) {
+//            keyPreviewView.setVisibility(View.VISIBLE);
+            slideUp(keyPreviewView);
+//            mShowingKeyPreviewViews.put(key, keyPreviewView);
+            return;
+        }
+
+        // Show preview with animation.
+        final Animator showUpAnimator = createShowUpAnimator(key, keyPreviewView);
+        final Animator dismissAnimator = createDismissAnimator(key, keyPreviewView);
+        final KeyPreviewAnimators animators = new KeyPreviewAnimators(
+                showUpAnimator, dismissAnimator);
+        keyPreviewView.setTag(animators);
+        animators.startShowUp();
+    }
+
+
+    private void dismissKeyPreview(final Key key, final boolean withAnimation) {
+        if (key == null) {
+            return;
+        }
+        final FrameLayout keyPreviewView = mShowingKeyPreviewViews.get(key);
+        if (keyPreviewView == null) {
+            return;
+        }
+        final Object tag = keyPreviewView.getTag();
+        if (withAnimation) {
+            if (tag instanceof KeyPreviewAnimators) {
+                final KeyPreviewAnimators animators = (KeyPreviewAnimators)tag;
+                animators.startDismiss();
+                return;
+            }
+        }
+        // Dismiss preview without animation.
+//        mShowingKeyPreviewViews.remove(key);
+        if (tag instanceof Animator) {
+            ((Animator)tag).cancel();
+        }
+        keyPreviewView.setTag(null);
+//        keyPreviewView.setVisibility(View.INVISIBLE);
+//        mFreeKeyPreviewViews.add(keyPreviewView);
+        slideDown(keyPreviewView);
+    }
+
+    public Animator createShowUpAnimator(final Key key, final FrameLayout keyPreviewView) {
+        final Animator animator = mKeyPreviewDrawParams.createShowUpAnimator(keyPreviewView);
+        animator.addListener(new AnimatorListenerAdapter() {
+            @Override
+            public void onAnimationStart(final Animator animator) {
+                showKeyPreview(key, keyPreviewView, false *//* withAnimation *//*);
+            }
+        });
+        return animator;
+    }
+
+    private Animator createDismissAnimator(final Key key, final FrameLayout keyPreviewView) {
+        final Animator animator = mKeyPreviewDrawParams.createDismissAnimator(keyPreviewView);
+        animator.addListener(new AnimatorListenerAdapter() {
+            @Override
+            public void onAnimationEnd(final Animator animator) {
+                dismissKeyPreview(key, false *//* withAnimation *//*);
+            }
+        });
+        return animator;
+    }
+
+    private static class KeyPreviewAnimators extends AnimatorListenerAdapter {
+        private final Animator mShowUpAnimator;
+        private final Animator mDismissAnimator;
+
+        public KeyPreviewAnimators(final Animator showUpAnimator, final Animator dismissAnimator) {
+            mShowUpAnimator = showUpAnimator;
+            mDismissAnimator = dismissAnimator;
+        }
+
+        public void startShowUp() {
+            mShowUpAnimator.start();
+        }
+
+        public void startDismiss() {
+            if (mShowUpAnimator.isRunning()) {
+                mShowUpAnimator.addListener(this);
+                return;
+            }
+            mDismissAnimator.start();
+        }
+
+        @Override
+        public void onAnimationEnd(final Animator animator) {
+            mDismissAnimator.start();
+        }
+    }*/
+
 }
