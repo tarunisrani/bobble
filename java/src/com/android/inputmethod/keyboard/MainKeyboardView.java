@@ -390,7 +390,9 @@ public final class MainKeyboardView extends KeyboardView implements PointerTrack
         // Remove any pending messages, except dismissing preview and key repeat.
         mKeyTimerHandler.cancelLongPressTimers();
 
-        placeKeys(keyboard);
+//        placeKeys(keyboard);
+
+//        setKeyParams(mKeyPreviewDrawParams);
 
         super.setKeyboard(keyboard);
         mKeyDetector.setKeyboard(
@@ -954,7 +956,7 @@ public final class MainKeyboardView extends KeyboardView implements PointerTrack
 //    private final ArrayDeque<FrameLayout> mFreeKeyPreviewViews = new ArrayDeque<>();
 
 
-    public void placeKeys(Keyboard keyboard){
+    public void placeKeyss(Keyboard keyboard){
 
 //        getLocationInWindow(mOriginCoords);
 

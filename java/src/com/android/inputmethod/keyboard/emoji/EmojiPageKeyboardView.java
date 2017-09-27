@@ -59,6 +59,7 @@ final class EmojiPageKeyboardView extends KeyboardView implements
     private final GestureDetector mGestureDetector;
     private KeyboardAccessibilityDelegate<EmojiPageKeyboardView> mAccessibilityDelegate;
 
+
     public EmojiPageKeyboardView(final Context context, final AttributeSet attrs) {
         this(context, attrs, R.attr.keyboardViewStyle);
     }
@@ -80,6 +81,7 @@ final class EmojiPageKeyboardView extends KeyboardView implements
      */
     @Override
     public void setKeyboard(final Keyboard keyboard) {
+
         super.setKeyboard(keyboard);
         mKeyDetector.setKeyboard(keyboard, 0 /* correctionX */, 0 /* correctionY */);
         if (AccessibilityUtils.getInstance().isAccessibilityEnabled()) {
